@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import coppelia.remoteApi;
 
 /**
  * Created by miguel on 23/03/17.
@@ -6,8 +7,8 @@ import java.util.ArrayList;
 public class Simulator {
 
     //create object handles, they are arrays that carry the handle.
-    private ArrayList<double> SonarHandle = new ArrayList<double>();
-    private ArrayList<double> LaserHandle = new ArrayList<double>();
+    private ArrayList<int> SonarHandle = new ArrayList<int>();
+    private ArrayList<int> LaserHandle = new ArrayList<int>();
     private String ip;
     private int port;
     private int clientID;
@@ -35,7 +36,14 @@ public class Simulator {
         simxFinish(clientID);
     }
 
-    //checkConnection --> check if connection is ok
+    public boolean checkConnection(int clientID){
+        clientID = simxGetConnectionId(simxInt clientID);
+
+        if(clientID == -1){
+            return false;
+        }
+        return true;
+    }
     //updateSensors
     //readSensor --> implement a different method to each sensor (readSonar, readLaser).
     //readPositionAbsolut --> robot position
