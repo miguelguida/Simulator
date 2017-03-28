@@ -9,6 +9,7 @@ public class Simulator {
     //create object handles, they are arrays that carry the handle.
     private ArrayList<int> SonarHandle = new ArrayList<int>();
     private ArrayList<int> LaserHandle = new ArrayList<int>();
+    private ArrayList<int> CameraHandle = new ArrayList<int>();
     private String ip;
     private int port;
     private int clientID;
@@ -32,7 +33,7 @@ public class Simulator {
         return true;
     }
 
-    public boolean disconnect(){
+    public void disconnect(){
         simxFinish(clientID);
     }
 
