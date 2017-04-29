@@ -1,5 +1,7 @@
 import coppelia.*;
 
+import java.util.ArrayList;
+
 import static coppelia.remoteApi.*;
 
 /**
@@ -7,34 +9,30 @@ import static coppelia.remoteApi.*;
  */
 public class Simulator {
 
-    /*D U V I D A S:
-      - TIPO DOS HANDLES, COM ARRAYLIST N TAVA DANDO CERTO
-      - CRIACAO DOS OBJETOS, OQ EU PASSO POR PARAMETRO?
-      - DEU PROBLEMA PARA PEGAR O HANDLE DOS SENSORES :/
-      - SERA QUE EH PROBLEMA COM O IP QUE EU COLOQUEI?
-    */
+    // DUVIDA:os termos finais tem dois tipos, os de inicializacao e os de buffer. Qual eu uso?
+
     //create object handles, they are arrays that carry the handle.
-    private remoteApi robot;
-    private IntW sonarHandle;
-    private IntW laserHandle;
-    private IntW cameraHandle;
-    private IntWA handles;
+    private remoteApi robotClient;
+    private ArrayList<IntW> sonarHandle;
+    private ArrayList<IntW> laserHandle;
+    private ArrayList<IntW> cameraHandle;
+    private ArrayList<IntWA> handles;
     private String ip;
     private int port;
     private int clientID;
     private boolean connectionStatus;
     private int ret;
 
-    //DUVIDA: eu coloco um objeto remoteApi como parametro no construtor?
+
     public Simulator(String ip, int port){
     //here i can call connect() to start the conection to the simulator
         this.ip = ip;
         this.port = port;
-        robot = new remoteApi();
-        sonarHandle = new IntW(16);
-        laserHandle = new IntW(1);
-        cameraHandle = new IntW(1);
-        handles = new IntWA(3);
+        robotClient = new remoteApi();
+        sonarHandle = new ArrayList<IntW>();
+        laserHandle = new ArrayList<IntW>();
+        cameraHandle = new ArrayList<IntW>();
+        handles = new ArrayList<IntWA>();
         connectionStatus = connect(ip, port);
     }
 
@@ -44,31 +42,32 @@ public class Simulator {
     //
     public boolean connect(String ip, int port){
 
-        clientID = robot.simxStart(ip, port, true, true, 5000, 50);
+        clientID = robotClient.simxStart(ip, port, true, true, 5000, 50);
 
         if(clientID == -1){
             return false;
         }
-
-        ret = robot.simxGetObjects(clientID, sim_handle_all, handles, simx_opmode_oneshot_wait);
-        if (ret == remoteApi.simx_return_ok)
-            System.out.println("Got Handle");
-        else
-            System.out.format("Error: get handles returned with error");
-
-        ret = robot.simxGetObjectHandle(clientID, "sonarHandle", sonarHandle, simx_opmode_oneshot_wait);
-        if (ret == remoteApi.simx_return_ok)
-            System.out.println("Got Handle");
-        else
-            System.out.format("Error: get sonar handle returned with error");
-
-        ret = robot.simxGetObjectHandle(clientID, "cameraHandle", cameraHandle, simx_opmode_oneshot_wait);
+        for(int i = 0; i < 3; i++) {
+            ret = robotClient.simxGetObjects(clientID, sim_handle_all, handles.get(i), simx_opmode_oneshot_wait);
+            if (ret == remoteApi.simx_return_ok)
+                System.out.println("Got Handle");
+            else
+                System.out.format("Error: get handles returned with error");
+        }
+        for(int i = 0; i < 16; i++) {
+            ret = robotClient.simxGetObjectHandle(clientID, ("Pioneer_p3dx_ultrasonicSensor" + (i + 1)), sonarHandle.get(i), simx_opmode_oneshot_wait);
+            if (ret == remoteApi.simx_return_ok)
+                System.out.println("Got Handle");
+            else
+                System.out.format("Error: get sonar handle returned with error");
+        }
+        ret = robotClient.simxGetObjectHandle(clientID, "cameraHandle", cameraHandle.get(0), simx_opmode_oneshot_wait);
         if (ret == remoteApi.simx_return_ok)
             System.out.println("Got Handle");
         else
             System.out.format("Error: get vision handle returned with error");
 
-        ret = robot.simxGetObjectHandle(clientID, "laserHandle", laserHandle, simx_opmode_oneshot_wait);
+        ret = robotClient.simxGetObjectHandle(clientID, "laserHandle", laserHandle.get(0), simx_opmode_oneshot_wait);
         if (ret == remoteApi.simx_return_ok)
             System.out.println("Got Handle");
         else
@@ -78,11 +77,11 @@ public class Simulator {
     }
 
     public void disconnect(){
-        robot.simxFinish(clientID);
+        robotClient.simxFinish(clientID);
     }
 
     public boolean checkConnection(){
-        clientID = robot.simxGetConnectionId(clientID);
+        clientID = robotClient.simxGetConnectionId(clientID);
 
         if(clientID == -1){
             return false;
@@ -90,55 +89,63 @@ public class Simulator {
         return true;
     }
     //DUVIDA :neste método eu colocoo como parametros os detectedpoints e a image tbm?
-    public void updateSensors(int clientID, IntWA cameraHandle, IntWA laserHandle,
-                              IntWA sonarHandle){
-
-
+    public void updateSensors(){
+        for(int i = 0; i < 16; i++){
+            readSonar(sonarHandle.get(i));
+        }
+        readLaser(laserHandle.get(0));
+        readCamera(cameraHandle.get(0));
     }
+
     //readSensor --> implement a different method to each sensor (readSonar, readLaser).
-    public FloatWA readSonar(int clientID, IntW sonarHandle){
+    public FloatWA readSonar(IntW sonarHandle){
         FloatWA detectedPoint = new FloatWA(16);
 
-        robot.simxReadProximitySensor(clientID, sonarHandle.getValue(), null, detectedPoint, null, null,simx_opmode_streaming);
+        robotClient.simxReadProximitySensor(clientID, sonarHandle.getValue(), null, detectedPoint, null, null,simx_opmode_streaming);
 
         return detectedPoint;
     }
 
-    public FloatWA readLaser (int clientID, IntW laserHandle){
+    //Aqui no readLaser, se eu colocar o getStringSignal, como fica a leitura de dado?
+
+    public FloatWA readLaser (IntW laserHandle){
         FloatWA detectedPoint = new FloatWA(1);
 
-        robot.simxReadProximitySensor(clientID, laserHandle.getValue(), null, detectedPoint, null, null,simx_opmode_streaming);
+        robotClient.simxReadProximitySensor(clientID, laserHandle.getValue(), null, detectedPoint, null, null,simx_opmode_streaming);
 
         return detectedPoint;
     }
 
 
-    public CharWA readCamera(int clientID, IntW cameraHandle){
+    public CharWA readCamera(IntW cameraHandle){
         CharWA image = new CharWA (1);
         //retorna image apenas
         IntWA resolution = new IntWA(1);
-
-        robot.simxGetVisionSensorImage(clientID, cameraHandle.getValue(), resolution, image, 0, simx_opmode_streaming);
+        //int [] values = cameraHandle.getArray(); <-- isso ou o que eu coloquei? Quando handle era IntWA
+        robotClient.simxGetVisionSensorImage(clientID, cameraHandle.getValue(), resolution, image, 0, simx_opmode_streaming);
 
         return image;
     }
 
-    //robot position
-    public FloatWA readPositionAbsolut(int clientID, IntW robotHandle){
+    //robotClient position
+    public FloatWA readPositionAbsolut(int robotClientHandle){
         FloatWA position = new FloatWA(3);
 
-        robot.simxGetObjectPosition(clientID, robotHandle.getValue(), -1, position, simx_opmode_streaming );
+        robotClient.simxGetObjectPosition(clientID, robotClientHandle, -1, position, simx_opmode_streaming );
 
         return position;
     }
 
-    //in relation to the robot
-    public FloatWA readPositionRelativ(int clientID, int objectHandle){
+    //in relation to the robotClient
+    public FloatWA readPositionRelativ(int objectHandle){
         FloatWA position = new FloatWA(3);
 
-        robot.simxGetObjectPosition(clientID, objectHandle, -1, position, simx_opmode_buffer );
+        robotClient.simxGetObjectPosition(clientID, objectHandle, -1, position, simx_opmode_buffer );
 
         return position;
     }
 
+    public int getClientID() {
+        return clientID;
+    }
 }
