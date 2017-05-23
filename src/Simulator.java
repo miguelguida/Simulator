@@ -69,7 +69,7 @@ public class Simulator {
 
         ret = robotClient.simxGetObjectHandle(clientID, "Proximity_sensor", laserHandle, simx_opmode_oneshot_wait);
         if (ret == remoteApi.simx_return_ok)
-            System.out.println("Got Handle");
+            System.out.println("Got Handle!");
         else
             System.out.format("Error: get laser handle returned with error");
 
