@@ -1,6 +1,6 @@
 import coppelia.*;
 
-import java.util.ArrayList;
+
 
 import static coppelia.remoteApi.*;
 
@@ -13,10 +13,10 @@ public class Simulator {
 
     //create object handles, they are arrays that carry the handle.
     private remoteApi robotClient;
-    private ArrayList<IntW> sonarHandle;
-    private ArrayList<IntW> laserHandle;
-    private ArrayList<IntW> cameraHandle;
-    private ArrayList<IntWA> handles;
+    private IntW sonarHandle;
+    private IntW laserHandle;
+    private IntW cameraHandle;
+    private IntWA handles;
     private String ip;
     private int port;
     private int clientID;
@@ -29,10 +29,10 @@ public class Simulator {
         this.ip = ip;
         this.port = port;
         robotClient = new remoteApi();
-        sonarHandle = new ArrayList<IntW>();
-        laserHandle = new ArrayList<IntW>();
-        cameraHandle = new ArrayList<IntW>();
-        handles = new ArrayList<IntWA>();
+        sonarHandle = new IntW (16);
+        laserHandle = new IntW (1);
+        cameraHandle = new IntW (1);
+        handles = new IntWA(3);
         connectionStatus = connect(ip, port);
     }
 
@@ -48,26 +48,26 @@ public class Simulator {
             return false;
         }
         for(int i = 0; i < 3; i++) {
-            ret = robotClient.simxGetObjects(clientID, sim_handle_all, handles.get(i), simx_opmode_oneshot_wait);
+            ret = robotClient.simxGetObjects(clientID, sim_handle_all, handles, simx_opmode_oneshot_wait);
             if (ret == remoteApi.simx_return_ok)
                 System.out.println("Got Handle");
             else
                 System.out.format("Error: get handles returned with error");
         }
         for(int i = 0; i < 16; i++) {
-            ret = robotClient.simxGetObjectHandle(clientID, ("Pioneer_p3dx_ultrasonicSensor" + (i + 1)), sonarHandle.get(i), simx_opmode_oneshot_wait);
+            ret = robotClient.simxGetObjectHandle(clientID, ("Pioneer_p3dx_ultrasonicSensor" + (i + 1)), sonarHandle, simx_opmode_oneshot_wait);
             if (ret == remoteApi.simx_return_ok)
                 System.out.println("Got Handle");
             else
                 System.out.format("Error: get sonar handle returned with error");
         }
-        ret = robotClient.simxGetObjectHandle(clientID, "cameraHandle", cameraHandle.get(0), simx_opmode_oneshot_wait);
+        ret = robotClient.simxGetObjectHandle(clientID, "DefaultCamera", cameraHandle, simx_opmode_oneshot_wait);
         if (ret == remoteApi.simx_return_ok)
             System.out.println("Got Handle");
         else
             System.out.format("Error: get vision handle returned with error");
 
-        ret = robotClient.simxGetObjectHandle(clientID, "laserHandle", laserHandle.get(0), simx_opmode_oneshot_wait);
+        ret = robotClient.simxGetObjectHandle(clientID, "Proximity_sensor", laserHandle, simx_opmode_oneshot_wait);
         if (ret == remoteApi.simx_return_ok)
             System.out.println("Got Handle");
         else
@@ -91,10 +91,10 @@ public class Simulator {
     //DUVIDA :neste método eu colocoo como parametros os detectedpoints e a image tbm?
     public void updateSensors(){
         for(int i = 0; i < 16; i++){
-            readSonar(sonarHandle.get(i));
+            readSonar(sonarHandle);
         }
         readLaser();
-        readCamera(cameraHandle.get(0));
+        readCamera(cameraHandle);
     }
 
     //readSensor --> implement a different method to each sensor (readSonar, readLaser).
