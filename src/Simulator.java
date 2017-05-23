@@ -93,7 +93,7 @@ public class Simulator {
         for(int i = 0; i < 16; i++){
             readSonar(sonarHandle.get(i));
         }
-        readLaser(laserHandle.get(0));
+        readLaser();
         readCamera(cameraHandle.get(0));
     }
 
@@ -108,12 +108,12 @@ public class Simulator {
 
     //Aqui no readLaser, se eu colocar o getStringSignal, como fica a leitura de dado?
 
-    public FloatWA readLaser (IntW laserHandle){
-        FloatWA detectedPoint = new FloatWA(1);
+    public CharWA readLaser (){
+        CharWA signalValue = new CharWA(1);
 
-        robotClient.simxReadProximitySensor(clientID, laserHandle.getValue(), null, detectedPoint, null, null,simx_opmode_streaming);
+        robotClient.simxGetStringSignal(clientID, "laserValue", signalValue ,simx_opmode_streaming);
 
-        return detectedPoint;
+        return signalValue;
     }
 
 
