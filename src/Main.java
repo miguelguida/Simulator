@@ -1,11 +1,22 @@
-/**
- * Created by miguel on 23/03/17.
- */
-public class Main {
-    public static void main(String[] args) {
-        Simulator mVrep = new Simulator("177.220.84.242", 25000);
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.core.CvType;
+import org.opencv.core.Scalar;
 
-        System.out.println("\nCheck Connection: "+mVrep.checkConnection());
-        System.out.println("\nClientID: "+mVrep.getClientID());
+
+public class Main {
+    static{System.loadLibrary(Core.NATIVE_LIBRARY_NAME);}
+    public static void main(String[] args) {
+
+        Mat img = new Mat(3, 3, CvType.CV_64FC1);
+        Simulator mVrep = new Simulator("127.0.0.1", 25000);
+        System.out.println("Laser Value: ");
+        while(true){
+            //for (int i=0; i< mVrep.readLaser().getArray().length; ++i)
+                //System.out.println("Laser " + ": " + mVrep.readLaser().getString());
+            System.out.println(mVrep.readCamera().getArray());
+        }
+        //System.out.println("\nCheck Connection: "+mVrep.checkConnection());
+        //System.out.println("\nClientID: "+mVrep.getClientID());
     }
 }

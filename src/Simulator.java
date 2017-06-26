@@ -13,13 +13,13 @@ public class Simulator {
 
     //create object handles, they are arrays that carry the handle.
     private remoteApi robotClient;
-    private IntW sonarHandle;
+    private IntW sonarHandle[];
     private IntW laserHandle;
     private IntW cameraHandle;
     private IntWA handles;
     private String ip;
     private int port;
-    private int clientID;
+    private int clientID;///
     private boolean connectionStatus;
     private int ret;
 
@@ -29,7 +29,10 @@ public class Simulator {
         this.ip = ip;
         this.port = port;
         robotClient = new remoteApi();
-        sonarHandle = new IntW (16);
+        sonarHandle = new IntW [16];
+        for(int i=0; i < 16; i++){
+            sonarHandle[i] = new IntW (0);
+        }
         laserHandle = new IntW (1);
         cameraHandle = new IntW (1);
         handles = new IntWA(3);
@@ -55,13 +58,13 @@ public class Simulator {
                 System.out.format("Error: get handles returned with error");
         }
         for(int i = 0; i < 16; i++) {
-            ret = robotClient.simxGetObjectHandle(clientID, ("Pioneer_p3dx_ultrasonicSensor" + (i + 1)), sonarHandle, simx_opmode_oneshot_wait);
+            ret = robotClient.simxGetObjectHandle(clientID, ("Pioneer_p3dx_ultrasonicSensor" + (i + 1)), sonarHandle[i], simx_opmode_oneshot_wait);
             if (ret == remoteApi.simx_return_ok)
                 System.out.println("Got Handle");
             else
                 System.out.format("Error: get sonar handle returned with error");
         }
-        ret = robotClient.simxGetObjectHandle(clientID, "DefaultCamera", cameraHandle, simx_opmode_oneshot_wait);
+        ret = robotClient.simxGetObjectHandle(clientID, "Vision_sensor", cameraHandle, simx_opmode_oneshot_wait);
         if (ret == remoteApi.simx_return_ok)
             System.out.println("Got Handle");
         else
@@ -88,36 +91,47 @@ public class Simulator {
         }
         return true;
     }
-    //DUVIDA :neste método eu colocoo como parametros os detectedpoints e a image tbm?
+    //DUVIDA :neste método eu coloco como parametros os detectedpoints e a image tbm?
     public void updateSensors(){
         for(int i = 0; i < 16; i++){
-            readSonar(sonarHandle);
+            readSonar();
         }
         readLaser();
-        readCamera(cameraHandle);
+        readCamera();
     }
 
     //readSensor --> implement a different method to each sensor (readSonar, readLaser).
-    public FloatWA readSonar(IntW sonarHandle){
-        FloatWA detectedPoint = new FloatWA(16);
+    //A FAZER: SEPARAR UMA LEITURA PARA CADA UM DOS 16 SONARES
+    public FloatWA[] readSonar(){
+        FloatWA detectedPoint[] = new FloatWA[16];
+        for(int i = 0; i < 16; i ++){
+            detectedPoint[i] = new FloatWA(3);
+        }
 
-        robotClient.simxReadProximitySensor(clientID, sonarHandle.getValue(), null, detectedPoint, null, null,simx_opmode_streaming);
-
+        for(int i = 0; i < 16; i ++) {
+            robotClient.simxReadProximitySensor(clientID, sonarHandle[i].getValue(), null, detectedPoint[i], null, null, simx_opmode_streaming);
+        }
         return detectedPoint;
     }
 
     //Aqui no readLaser, se eu colocar o getStringSignal, como fica a leitura de dado?
 
     public CharWA readLaser (){
-        CharWA signalValue = new CharWA(1);
+        CharWA signalValue = new CharWA(2160);
+        FloatWA f = null;
 
-        robotClient.simxGetStringSignal(clientID, "laserValue", signalValue ,simx_opmode_streaming);
+        if(robotClient.simxGetStringSignal(clientID, "LaserSignal", signalValue ,simx_opmode_streaming) == simx_error_noerror){
+            f.initArrayFromCharArray(signalValue.getArray());
 
+        }
+        else{
+            System.out.println("Error");
+        }
         return signalValue;
     }
 
 
-    public CharWA readCamera(IntW cameraHandle){
+    public CharWA readCamera(){
         CharWA image = new CharWA (1);
         //retorna image apenas
         IntWA resolution = new IntWA(1);
@@ -126,6 +140,8 @@ public class Simulator {
 
         return image;
     }
+
+
 
     //robotClient position
     public FloatWA readPositionAbsolut(int robotClientHandle){
