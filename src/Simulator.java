@@ -1,5 +1,8 @@
 import coppelia.*;
-
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.core.CvType;
+import org.opencv.core.Scalar;
 
 
 import static coppelia.remoteApi.*;
@@ -116,18 +119,16 @@ public class Simulator {
 
     //Aqui no readLaser, se eu colocar o getStringSignal, como fica a leitura de dado?
 
-    public CharWA readLaser (){
+    public FloatWA readLaser (){
         CharWA signalValue = new CharWA(2160);
-        FloatWA f = null;
+        FloatWA f = new FloatWA(540);
 
-        if(robotClient.simxGetStringSignal(clientID, "LaserSignal", signalValue ,simx_opmode_streaming) == simx_error_noerror){
+        robotClient.simxGetStringSignal(clientID, "LaserSignal", signalValue ,simx_opmode_streaming);
             f.initArrayFromCharArray(signalValue.getArray());
 
-        }
-        else{
-            System.out.println("Error");
-        }
-        return signalValue;
+
+
+        return f;
     }
 
 
@@ -163,5 +164,21 @@ public class Simulator {
 
     public int getClientID() {
         return clientID;
+    }
+
+    public Mat getImage() {
+//        final CharWA image = newImage();
+//        final IntWA resolution = newResolution();
+        CharWA image = new CharWA (1);
+        //retorna image apenas
+        IntWA resolution = new IntWA(1);
+        final int response = robotClient.simxGetVisionSensorImage(clientID, cameraHandle.getValue(), resolution, image, 0, simx_opmode_streaming);
+
+        if (response == remoteApi.simx_return_ok) {
+            ImageConverter converter = new ImageConverter(resolution, image);
+            return converter.image();
+        } else {
+            return null;
+        }
     }
 }

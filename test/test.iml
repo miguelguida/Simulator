@@ -7,7 +7,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="coppelia" level="project" />
-    <orderEntry type="library" name="opencv-new" level="project" />
+    <orderEntry type="library" exported="" name="coppelia" level="project" />
+    <orderEntry type="library" exported="" name="opencv-new" level="project" />
   </component>
 </module>

@@ -1,11 +1,10 @@
 <component name="libraryTable">
   <library name="coppelia">
-    <CLASSES>
-      <root url="file:///opt/V-REP_PRO_EDU_V3_3_2_64_Linux/programming/remoteApiBindings/java/java" />
-    </CLASSES>
+    <CLASSES />
     <JAVADOC />
-    <SOURCES>
-      <root url="file:///opt/V-REP_PRO_EDU_V3_3_2_64_Linux/programming/remoteApiBindings/java/java" />
-    </SOURCES>
+    <NATIVE>
+      <root url="file://$PROJECT_DIR$/../../../../V-REP_PRO_EDU_V3_4_0_Linux/programming/remoteApiBindings/java/lib/64Bit" />
+    </NATIVE>
+    <SOURCES />
   </library>
 </component>
