@@ -124,7 +124,7 @@ public class Simulator {
         FloatWA f = new FloatWA(540);
 
         robotClient.simxGetStringSignal(clientID, "LaserSignal", signalValue ,simx_opmode_streaming);
-            f.initArrayFromCharArray(signalValue.getArray());
+        f.initArrayFromCharArray(signalValue.getArray());
 
 
 
